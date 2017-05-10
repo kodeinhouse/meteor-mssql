@@ -5,7 +5,7 @@ Meteor package to use SQL Server as backend database and minimongo over DDP
 We intend to provide a simple way to query SQL Server databases using the same pub/sub system as the first step to have reactive queries just like with Mongo.
 
 This is a development version without any sql injection checking
-## DO NOT USE IT IN PRODUCTION
+## DO NOT USE IT IN PRODUCTION (THIS IS AN EARLY STAGE AND DON'T DO MUCH)
 
 
 ### Installation
