@@ -1,0 +1,104 @@
+{
+  "dependencies": {
+    "babel-runtime": {
+      "version": "6.23.0",
+      "resolved": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.23.0.tgz",
+      "from": "babel-runtime@>=6.23.0 <7.0.0"
+    },
+    "big-number": {
+      "version": "0.3.1",
+      "resolved": "https://registry.npmjs.org/big-number/-/big-number-0.3.1.tgz",
+      "from": "big-number@0.3.1"
+    },
+    "bl": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/bl/-/bl-1.2.1.tgz",
+      "from": "bl@>=1.2.0 <2.0.0"
+    },
+    "buffer-shims": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/buffer-shims/-/buffer-shims-1.0.0.tgz",
+      "from": "buffer-shims@>=1.0.0 <1.1.0"
+    },
+    "core-js": {
+      "version": "2.4.1",
+      "resolved": "https://registry.npmjs.org/core-js/-/core-js-2.4.1.tgz",
+      "from": "core-js@>=2.4.0 <3.0.0"
+    },
+    "core-util-is": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz",
+      "from": "core-util-is@>=1.0.0 <1.1.0"
+    },
+    "debug": {
+      "version": "2.6.6",
+      "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.6.tgz",
+      "from": "debug@>=2.6.3 <3.0.0"
+    },
+    "generic-pool": {
+      "version": "3.1.7",
+      "resolved": "https://registry.npmjs.org/generic-pool/-/generic-pool-3.1.7.tgz",
+      "from": "generic-pool@>=3.1.7 <4.0.0"
+    },
+    "iconv-lite": {
+      "version": "0.4.17",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.17.tgz",
+      "from": "iconv-lite@>=0.4.11 <0.5.0"
+    },
+    "inherits": {
+      "version": "2.0.3",
+      "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.3.tgz",
+      "from": "inherits@>=2.0.1 <2.1.0"
+    },
+    "isarray": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
+      "from": "isarray@>=1.0.0 <1.1.0"
+    },
+    "ms": {
+      "version": "0.7.3",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-0.7.3.tgz",
+      "from": "ms@0.7.3"
+    },
+    "mssql": {
+      "version": "4.0.4",
+      "resolved": "https://registry.npmjs.org/mssql/-/mssql-4.0.4.tgz",
+      "from": "mssql@4.0.4"
+    },
+    "process-nextick-args": {
+      "version": "1.0.7",
+      "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-1.0.7.tgz",
+      "from": "process-nextick-args@>=1.0.6 <1.1.0"
+    },
+    "readable-stream": {
+      "version": "2.2.9",
+      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.2.9.tgz",
+      "from": "readable-stream@>=2.2.6 <3.0.0"
+    },
+    "regenerator-runtime": {
+      "version": "0.10.5",
+      "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.10.5.tgz",
+      "from": "regenerator-runtime@>=0.10.0 <0.11.0"
+    },
+    "sprintf": {
+      "version": "0.1.5",
+      "resolved": "https://registry.npmjs.org/sprintf/-/sprintf-0.1.5.tgz",
+      "from": "sprintf@0.1.5"
+    },
+    "string_decoder": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.0.0.tgz",
+      "from": "string_decoder@>=1.0.0 <1.1.0"
+    },
+    "tedious": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/tedious/-/tedious-2.0.0.tgz",
+      "from": "tedious@>=2.0.0 <3.0.0"
+    },
+    "util-deprecate": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+      "from": "util-deprecate@>=1.0.1 <1.1.0"
+    }
+  }
+}
