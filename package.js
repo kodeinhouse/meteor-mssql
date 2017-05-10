@@ -1,5 +1,5 @@
 Package.describe({
-  name: 'kodein:mssql',
+  name: 'mssql',
   version: '0.0.1',
   // Brief, one-line summary of the package.
   summary: '',
@@ -19,6 +19,6 @@ Package.onUse(function(api) {
 Package.onTest(function(api) {
   api.use('ecmascript');
   api.use('tinytest');
-  api.use('kodein:mssql');
+  api.use('mssql');
   api.mainModule('mssql-tests.js');
 });
