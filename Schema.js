@@ -20,16 +20,26 @@ export class Schema
             else
                 if(type == 'object')
                 {
-                    let properties = transform;
+                    let self = this;
+
+                    self.properties = transform;
 
                     return function(record, index){
-                        let clone = {};
 
-                        for(let key in properties){
-                            clone[key] = record[properties[key]];
-                        }
+                        let processKeys = function(properties){
+                            let clone = {};
 
-                        return clone;
+                            for(let key in properties){
+                                if(typeof properties[key] != 'object')
+                                    clone[key] = record[properties[key]];
+                                else
+                                    clone[key] = processKeys(properties[key]);
+                            }
+
+                            return clone;
+                        };
+
+                        return processKeys(self.properties);
                     };
                 }
                 else
