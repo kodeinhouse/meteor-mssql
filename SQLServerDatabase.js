@@ -6,7 +6,8 @@ export class SQLServerDatabase
 {
     constructor(options)
     {
-        this.options = options;
+        this.options = options.settings;
+        this.schema = options.schema;
     }
 }
 

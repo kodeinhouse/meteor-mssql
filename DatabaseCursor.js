@@ -17,14 +17,24 @@ DatabaseCursor.prototype.read = function()
     this.processResult(result);
 };
 
+DatabaseCursor.prototype.getTransform = function(){
+
+    if(this.database.schema && this.database.schema.transform)
+        return this.database.schema.transform;
+    else
+    {
+        return function(record, index){
+            // To simulate a mongo collection we need to set the _id property
+            record._id = auxIndex;
+        };
+    }
+};
+
 DatabaseCursor.prototype.processResult = function(result)
 {
-    let auxIndex = 0;
-    this.records = result.map(function(record){
-        record._id = auxIndex;
-        auxIndex++;
-        return record;
-    });
+    let transform = this.getTransform();
+
+    this.records = result.map(transform);
 };
 
 DatabaseCursor.prototype.nextObject = function(callback)

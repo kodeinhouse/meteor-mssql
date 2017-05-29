@@ -110,7 +110,7 @@ export class Collection
         // #MeteorServerNull
         if (name && self._connection === Meteor.server &&
             Drivers.DefaultRemoteCollectionDriver != null) {
-          options._driver = Drivers.DefaultRemoteCollectionDriver();
+          options._driver = Drivers.DefaultRemoteCollectionDriver(options);
           console.log('Entro en el default remote collection driver');
         } else {
           options._driver = LocalCollectionDriver;

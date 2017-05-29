@@ -26,8 +26,6 @@ _.extend(RemoteCollectionDriver.prototype, {
 // Create the singleton RemoteCollectionDriver only on demand, so we
 // only require MSSQL configuration if it's actually used (eg, not if
 // you're only trying to receive data from a remote DDP server.)
-Drivers.DefaultRemoteCollectionDriver = _.once(function () {
-  var connectionOptions = Meteor.settings.mssql;
-
-  return new RemoteCollectionDriver(connectionOptions);
+Drivers.DefaultRemoteCollectionDriver = _.once(function (options) {
+  return new RemoteCollectionDriver(Object.assign(options, {settings: Meteor.settings.mssql}));
 });
