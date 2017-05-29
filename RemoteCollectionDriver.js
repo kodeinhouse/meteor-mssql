@@ -4,22 +4,28 @@ Drivers = {};
 
 RemoteCollectionDriver = function (options) {
   var self = this;
+  console.log('Creating a new connection');
+
   self.mssql = new MSSQLConnection(options);
 };
 
 _.extend(RemoteCollectionDriver.prototype, {
   open: function (name) {
-    var self = this;
-    var ret = {};
-    _.each(
-      ['find', 'findOne', 'insert', 'update', 'upsert',
-       'remove', '_ensureIndex', '_dropIndex', '_createCappedCollection',
-       'dropCollection', 'rawCollection'],
-      function (m) {
-        ret[m] = _.bind(self.mssql[m], self.mssql, name);
-      });
-    return ret;
-  }
+        var self = this;
+        var ret = {};
+        _.each(
+          ['find', 'findOne', 'insert', 'update', 'upsert',
+           'remove', '_ensureIndex', '_dropIndex', '_createCappedCollection',
+           'dropCollection', 'rawCollection'],
+          function (m) {
+            ret[m] = _.bind(self.mssql[m], self.mssql, name);
+          });
+        return ret;
+    },
+    attachSchema: function(name, schema)
+    {
+        this.mssql.setSchema(name, schema);
+    }
 });
 
 

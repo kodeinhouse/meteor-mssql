@@ -107,6 +107,10 @@ MSSQLConnection = function (options) {
     self.db = new SQLServerDatabase(options);
 };
 
+MSSQLConnection.prototype.setSchema = function(collection, schema){
+    this.db.attachSchema(collection, schema);
+};
+
 MSSQLConnection.prototype.close = function() {
   var self = this;
 

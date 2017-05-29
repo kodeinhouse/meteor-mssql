@@ -3,8 +3,10 @@ import { DatabaseCursor } from './DatabaseCursor';
 export class SQLServerCollection
 {
     constructor( name, database){
+        this.debug = false;
         this.name = name;
         this.database = database;
+        this.schema = database.getSchema(name);
     }
 }
 
@@ -18,11 +20,16 @@ SQLServerCollection.prototype.find = function(selector, fields, options)
         if(typeof selector == 'object')
         {
             if(Object.keys(selector).length == 0)
-               query = `SELECT * FROM [${this.name}]`;
+            {
+                query = 'SELECT ';
+                query += options && options.limit ? `TOP ${options.limit} ` : '';
+                query += `* `;
+                query += `FROM [${this.name}] `;
+            }
             else
             {
                 // transform = { name => CompanyName }
-                let properties = typeof this.database.schema.properties == 'object' ? this.database.schema.properties : {};
+                let properties = typeof this.schema.properties == 'object' ? this.schema.properties : {};
                 let conditions = [];
 
                 // selector = { name: 'XXXX' }
@@ -38,9 +45,11 @@ SQLServerCollection.prototype.find = function(selector, fields, options)
                     return `${item.key} = ${item.value}`;
                 }).join(' ');
 
-                query = `SELECT *
-                         FROM [${this.name}]
-                         WHERE ${condition}`;
+                query = 'SELECT ';
+                query += options && options.limit ? `TOP ${options.limit} ` : '';
+                query += `* `;
+                query += `FROM [${this.name}] `;
+                query += `WHERE ${condition}`;
 
                 console.log(query);
             }
@@ -49,9 +58,9 @@ SQLServerCollection.prototype.find = function(selector, fields, options)
             throw new Error("Unknown selector type.");
 
     console.log('SQLServerCollection.find');
-    console.log(selector);
-    console.log(fields);
-    console.log(options);
+    this.debug && console.log(selector);
+    this.debug && console.log(fields);
+    this.debug && console.log(options);
 
-    return new DatabaseCursor(query, this.database);
+    return new DatabaseCursor(this.database, this.name, query);
 };

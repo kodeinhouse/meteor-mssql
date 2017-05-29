@@ -1,9 +1,10 @@
 export class DatabaseCursor
 {
-    constructor(query, database)
+    constructor(database, collection, query)
     {
-        this.query = query;
+        this.collection = collection;
         this.database = database;
+        this.query = query;
 
         this.read();
     }
@@ -19,8 +20,9 @@ DatabaseCursor.prototype.read = function()
 
 DatabaseCursor.prototype.getTransform = function(){
 
-    if(this.database.schema && this.database.schema.transform)
-        return this.database.schema.transform;
+    let schema = this.database.getSchema(this.collection);
+    if(schema && schema.transform)
+        return schema.transform;
     else
     {
         return function(record, index){

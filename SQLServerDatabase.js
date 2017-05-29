@@ -7,7 +7,17 @@ export class SQLServerDatabase
     constructor(options)
     {
         this.options = options.settings;
-        this.schema = options.schema;
+        this.schemas = [];
+    }
+
+    attachSchema(collection, schema)
+    {
+        this.schemas[collection] = schema;
+    }
+
+    getSchema(collection)
+    {
+        return this.schemas[collection];
     }
 }
 
@@ -33,7 +43,7 @@ SQLServerDatabase.prototype.getRequest = function()
 SQLServerDatabase.prototype.executeQuery = function(query)
 {
     let future = new Future();
-    console.log('SQLServerDatabase.executeQuery:before');
+    console.log('SQLServerDatabase.executeQuery:before ' + query);
 
     this.getConnection().then(function(pool){
         new Sql.driver.Request().query(query).then(function(result){
