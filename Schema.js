@@ -22,24 +22,53 @@ export class Schema
                 {
                     let self = this;
 
-                    self.properties = transform;
+                    this.properties = transform;
+
+                    let properties = Object.assign({}, this.properties);
+
+                    if(properties.aliases)
+                    {
+                        // Extract optional properties
+                        let aliases = properties.aliases || {};
+
+                        // Remove that from the current object
+                        delete properties.aliases;
+
+                        // Merget properties
+                        properties = Object.assign(properties, aliases);
+                    }
 
                     return function(record, index){
 
-                        let processKeys = function(properties){
+                        let map = function(properties){
                             let clone = {};
 
                             for(let key in properties){
+                                // This is capable of transforming a plain object into an object like {name: 'CompanyName', contact: { name: 'ContactName', phone: 'ContactPhone'}}
                                 if(typeof properties[key] != 'object')
-                                    clone[key] = record[properties[key]];
+                                {
+                                    let field = properties[key];
+
+                                    // Assign the property only if the record has it
+                                    if(record.hasOwnProperty(field))
+                                        clone[key] = record[properties[key]];
+                                    else
+                                        false && console.log("Schema.transform: Ignoring field " + field);
+                                }
                                 else
-                                    clone[key] = processKeys(properties[key]);
+                                {
+                                    let result = map(properties[key]);
+
+                                    // We don't want to create empty properties
+                                    if(Object.keys(result).length > 0)
+                                        clone[key] = result;
+                                }
                             }
 
                             return clone;
                         };
 
-                        return processKeys(self.properties);
+                        return map(properties);
                     };
                 }
                 else

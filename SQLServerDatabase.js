@@ -6,6 +6,7 @@ export class SQLServerDatabase
 {
     constructor(options)
     {
+        this.debug = false;
         this.options = options.settings;
         this.schemas = [];
     }
@@ -29,7 +30,7 @@ SQLServerDatabase.prototype.getConnection = function(){
     if(!this.connection)
         this.connection = Sql.driver.connect(this.options);
 
-    console.log('SQLServerDatabase.getConnection');
+    this.debug && console.log('SQLServerDatabase.getConnection');
     return this.connection;
 };
 
@@ -43,18 +44,18 @@ SQLServerDatabase.prototype.getRequest = function()
 SQLServerDatabase.prototype.executeQuery = function(query)
 {
     let future = new Future();
-    console.log('SQLServerDatabase.executeQuery:before ' + query);
+    this.debug && console.log('SQLServerDatabase.executeQuery:before ' + query);
 
     this.getConnection().then(function(pool){
         new Sql.driver.Request().query(query).then(function(result){
-            console.log('SQLServerDatabase.executeQuery:during');
+            this.debug && console.log('SQLServerDatabase.executeQuery:during');
             future['return'](result.recordset);
         });
     });
 
-    console.log('SQLServerDatabase.executeQuery:waiting');
+    this.debug && console.log('SQLServerDatabase.executeQuery:waiting');
     let result = future.wait();
-    console.log('SQLServerDatabase.executeQuery:returning');
-    console.log('----------------------------------------');
+    this.debug && console.log('SQLServerDatabase.executeQuery:returning');
+    this.debug && console.log('----------------------------------------');
     return result;
 };

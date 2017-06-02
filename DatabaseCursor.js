@@ -21,6 +21,7 @@ DatabaseCursor.prototype.read = function()
 DatabaseCursor.prototype.getTransform = function(){
 
     let schema = this.database.getSchema(this.collection);
+
     if(schema && schema.transform)
         return schema.transform;
     else
@@ -28,6 +29,8 @@ DatabaseCursor.prototype.getTransform = function(){
         return function(record, index){
             // To simulate a mongo collection we need to set the _id property
             record._id = auxIndex;
+
+            return record;
         };
     }
 };
@@ -41,7 +44,6 @@ DatabaseCursor.prototype.processResult = function(result)
 
 DatabaseCursor.prototype.nextObject = function(callback)
 {
-    //console.log('nextObject');
     return callback(null, this.records[this.index++]);
 };
 
