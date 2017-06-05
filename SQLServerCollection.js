@@ -3,7 +3,7 @@ import { DatabaseCursor } from './DatabaseCursor';
 export class SQLServerCollection
 {
     constructor( name, database){
-        this.debug = true;
+        this.debug = false;
         this.name = name;
         this.database = database;
         this.schema = database.getSchema(name);

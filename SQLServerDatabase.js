@@ -6,7 +6,7 @@ export class SQLServerDatabase
 {
     constructor(options)
     {
-        this.debug = true;
+        this.debug = false;
         this.options = options.settings;
         this.schemas = [];
     }
@@ -44,10 +44,6 @@ SQLServerDatabase.prototype.getRequest = function()
 SQLServerDatabase.prototype.executeQuery = function(query)
 {
     let future = new Future();
-
-    Sql.driver.on('error', function(error){
-        console.log(error);
-    });
 
     this.debug && console.log('SQLServerDatabase.executeQuery:before ' + query);
 
