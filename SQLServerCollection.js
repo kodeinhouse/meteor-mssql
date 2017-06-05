@@ -3,7 +3,7 @@ import { DatabaseCursor } from './DatabaseCursor';
 export class SQLServerCollection
 {
     constructor( name, database){
-        this.debug = false;
+        this.debug = true;
         this.name = name;
         this.database = database;
         this.schema = database.getSchema(name);
@@ -17,6 +17,7 @@ export class SQLServerCollection
     getFields(fields)
     {
         let properties = this.getSchemaProperties();
+        let columns = [];
 
         if(fields != null)
         {
@@ -32,12 +33,10 @@ export class SQLServerCollection
                 properties = Object.assign(properties, aliases);
             }
 
-            let columns = Object.keys(fields).filter(c => { return fields[c] == 1}).map(c => { return properties[c]});
+            columns = Object.keys(fields).filter(c => { return fields[c] == 1}).map(c => { return properties[c]});
 
             if(columns.length == 0)
                 throw new Error("Invalid fields selector.");
-            else
-                return columns.join(', ');
         }
         else
         {
@@ -62,8 +61,10 @@ export class SQLServerCollection
                 return columns;
             };
 
-            return processKeys(properties).join(', ');
+            columns = processKeys(properties);
         }
+
+        return columns.map(c => { return `[${c}]`}).join(', ');
     }
 
     getCondition(selector)
@@ -93,10 +94,7 @@ export class SQLServerCollection
         let query = null;
 
         if(options.query)
-        {
             query = options.query;
-            this.debug && console.log("It's a query: " + query);
-        }
         else
             if(typeof selector == 'string')
                 query = selector;
@@ -124,7 +122,7 @@ export class SQLServerCollection
                 else
                     throw new Error("Unknown selector type.");
 
-        console.log(query);
+        this.debug && console.log(query);
 
         return query;
     }

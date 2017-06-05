@@ -6,7 +6,7 @@ export class SQLServerDatabase
 {
     constructor(options)
     {
-        this.debug = false;
+        this.debug = true;
         this.options = options.settings;
         this.schemas = [];
     }
@@ -44,18 +44,41 @@ SQLServerDatabase.prototype.getRequest = function()
 SQLServerDatabase.prototype.executeQuery = function(query)
 {
     let future = new Future();
+
+    Sql.driver.on('error', function(error){
+        console.log(error);
+    });
+
     this.debug && console.log('SQLServerDatabase.executeQuery:before ' + query);
 
     this.getConnection().then(function(pool){
-        new Sql.driver.Request().query(query).then(function(result){
-            this.debug && console.log('SQLServerDatabase.executeQuery:during');
-            future['return'](result.recordset);
+        let request = new Sql.driver.Request();
+
+        request.query(query, function(error, result) {
+            if(!error)
+            {
+                this.debug && console.log('SQLServerDatabase.executeQuery:during');
+
+                future['return'](result.recordset);
+            }
+            else
+                console.log(error);
         });
     });
 
     this.debug && console.log('SQLServerDatabase.executeQuery:waiting');
-    let result = future.wait();
-    this.debug && console.log('SQLServerDatabase.executeQuery:returning');
-    this.debug && console.log('----------------------------------------');
-    return result;
+    try {
+        let result = future.wait();
+
+        this.debug && console.log('SQLServerDatabase.executeQuery:returning');
+        this.debug && console.log('----------------------------------------');
+
+        return result;
+    }
+    catch (e) {
+        console.log(e);
+    }
+    finally {
+
+    }
 };
