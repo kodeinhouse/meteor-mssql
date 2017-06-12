@@ -136,7 +136,11 @@ export class SQLServerCollection
                 return value;
             else
                 if(value instanceof Date)
-                    return value.toISOString().slice(0, 19).replace('T', ' ');
+                {
+                    value = value.toISOString().slice(0, 19).replace('T', ' ');
+
+                    return `'${value}'`;
+                }
                 else
                     return 'NULL';
     }
@@ -163,13 +167,14 @@ export class SQLServerCollection
             properties.push({key: mapping[key], value: fields[key]});
         }
 
+        // Thinking currently only on a table with an IDENTITY primary key
         properties.splice(properties.map(c => { return c.key}).indexOf('_id'), 1);
 
         let fieldsPart = properties.map(c => { return `[${c.key}]`; }).join(', ');
         let valuesPart = properties.map(c => { return this.getSQLValue(c.value)}).join(', ');
 
         let query = `INSERT INTO [${this.name}] (${fieldsPart}) VALUES (${valuesPart}); SELECT SCOPE_IDENTITY() AS id`;
-
+        console.log(query);
         return this.database.insert(query, function(error, result){
             if(result)
                 result = Array.isArray(result.recordset) && result.recordset.length > 0 ? result.recordset[0].id : null;
@@ -179,8 +184,37 @@ export class SQLServerCollection
         });
     }
 
-    update(selector, fields)
+    getSQLProperties(fields)
     {
+        let properties = this.getSchemaProperties();
+        let items = [];
 
+        for(let key in fields)
+        {
+            items.push({key: properties[key], value: fields[key]});
+        }
+
+        return items.map(c => {return `[${c.key}] = ${this.getSQLValue(c.value)}`; }).join(', ');
+    }
+
+    update(selector, fields, options, callback)
+    {
+        let properties = this.getSQLProperties(fields.$set);
+        let conditions = this.getSQLProperties(selector);
+
+        let query = `UPDATE [${this.name}] SET ${properties} WHERE ${conditions}`;
+        console.log(query);
+        return this.database.update(query, function(error, result){
+
+            if(result)
+            {
+                let rowsAffected = result.rowsAffected;
+
+                // Callback coming from MSSQLConnection expectes an object in the following form {result: {n: #}}
+                result = {result: {n: (Array.isArray(rowsAffected) && rowsAffected.length > 0 ? rowsAffected[0] : null)}};
+            }
+
+            callback(error, result);
+        });
     }
 }

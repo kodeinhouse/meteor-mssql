@@ -23,12 +23,22 @@ export class SQLServerDatabase
 
     insert(query, callback)
     {
+        return this.execute(query, callback);
+    }
+
+    update(query, callback)
+    {
+        return this.execute(query, callback);
+    }
+
+    execute(query, callback)
+    {
         let future = new Future();
 
         try
         {
             if(!query)
-                throw "You must provide an insert query";
+                throw "You must provide an statement query";
 
             this.getConnection().then(function(pool){
                 let request = new Sql.driver.Request();

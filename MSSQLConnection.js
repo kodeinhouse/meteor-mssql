@@ -305,130 +305,143 @@ MSSQLConnection.prototype._dropDatabase = function (cb) {
   }
 };
 
-MSSQLConnection.prototype._update = function (collection_name, selector, mod,
-                                              options, callback) {
-  var self = this;
+MSSQLConnection.prototype._update = function (collection_name, selector, mod, options, callback) {
+    var self = this;
 
-  if (! callback && options instanceof Function) {
-    callback = options;
-    options = null;
-  }
-
-  if (collection_name === "___meteor_failure_test_collection") {
-    var e = new Error("Failure test");
-    e.expected = true;
-    if (callback) {
-      return callback(e);
-    } else {
-      throw e;
-    }
-  }
-
-  // explicit safety check. null and undefined can crash the mongo
-  // driver. Although the node driver and minimongo do 'support'
-  // non-object modifier in that they don't crash, they are not
-  // meaningful operations and do not do anything. Defensively throw an
-  // error here.
-  if (!mod || typeof mod !== 'object')
-    throw new Error("Invalid modifier. Modifier must be an object.");
-
-  if (!(LocalCollection._isPlainObject(mod) &&
-        !EJSON._isCustomType(mod))) {
-    throw new Error(
-      "Only plain objects may be used as replacement" +
-        " documents in MSSQLDB");
-  }
-
-  if (!options) options = {};
-
-  var write = self._maybeBeginWrite();
-  var refresh = function () {
-    self._refresh(collection_name, selector);
-  };
-  callback = writeCallback(write, refresh, callback);
-  try {
-    var collection = self.rawCollection(collection_name);
-    var mongoOpts = {safe: true};
-    // explictly enumerate options that minimongo supports
-    if (options.upsert) mongoOpts.upsert = true;
-    if (options.multi) mongoOpts.multi = true;
-    // Lets you get a more more full result from MSSQLDB. Use with caution:
-    // might not work with C.upsert (as opposed to C.update({upsert:true}) or
-    // with simulated upsert.
-    if (options.fullResult) mongoOpts.fullResult = true;
-
-    var mongoSelector = replaceTypes(selector, replaceMeteorAtomWithMSSQL);
-    var mongoMod = replaceTypes(mod, replaceMeteorAtomWithMSSQL);
-
-    var isModify = isModificationMod(mongoMod);
-    var knownId = selector._id || mod._id;
-
-    if (options._forbidReplace && ! isModify) {
-      var err = new Error("Invalid modifier. Replacements are forbidden.");
-      if (callback) {
-        return callback(err);
-      } else {
-        throw err;
-      }
+    if (! callback && options instanceof Function) {
+        callback = options;
+        options = null;
     }
 
-    if (options.upsert && (! knownId) && options.insertedId) {
-      // XXX If we know we're using MSSQL 2.6 (and this isn't a replacement)
-      //     we should be able to just use $setOnInsert instead of this
-      //     simulated upsert thing. (We can't use $setOnInsert with
-      //     replacements because there's nowhere to write it, and $setOnInsert
-      //     can't set _id on MSSQL 2.4.)
-      //
-      //     Also, in the future we could do a real upsert for the mongo id
-      //     generation case, if the the node mongo driver gives us back the id
-      //     of the upserted doc (which our current version does not).
-      //
-      //     For more context, see
-      //     https://github.com/meteor/meteor/issues/2278#issuecomment-64252706
-      simulateUpsertWithInsertedId(
-        collection, mongoSelector, mongoMod,
-        isModify, options,
-        // This callback does not need to be bindEnvironment'ed because
-        // simulateUpsertWithInsertedId() wraps it and then passes it through
-        // bindEnvironmentForWrite.
-        function (error, result) {
-          // If we got here via a upsert() call, then options._returnObject will
-          // be set and we should return the whole object. Otherwise, we should
-          // just return the number of affected docs to match the mongo API.
-          if (result && ! options._returnObject) {
-            callback(error, result.numberAffected);
-          } else {
-            callback(error, result);
-          }
+    if (collection_name === "___meteor_failure_test_collection") {
+        var e = new Error("Failure test");
+        e.expected = true;
+
+        if (callback) {
+            return callback(e);
         }
-      );
-    } else {
-      collection.update(
-        mongoSelector, mongoMod, mongoOpts,
-        bindEnvironmentForWrite(function (err, result) {
-          if (! err) {
-            var meteorResult = transformResult(result);
-            if (meteorResult && options._returnObject) {
-              // If this was an upsert() call, and we ended up
-              // inserting a new doc and we know its id, then
-              // return that id as well.
-
-              if (options.upsert && meteorResult.insertedId && knownId) {
-                meteorResult.insertedId = knownId;
-              }
-              callback(err, meteorResult);
-            } else {
-              callback(err, meteorResult.numberAffected);
-            }
-          } else {
-            callback(err);
-          }
-        }));
+        else {
+            throw e;
+        }
     }
-  } catch (e) {
-    write.committed();
-    throw e;
-  }
+
+    // explicit safety check. null and undefined can crash the mongo
+    // driver. Although the node driver and minimongo do 'support'
+    // non-object modifier in that they don't crash, they are not
+    // meaningful operations and do not do anything. Defensively throw an
+    // error here.
+    if (!mod || typeof mod !== 'object')
+        throw new Error("Invalid modifier. Modifier must be an object.");
+
+    if (!(LocalCollection._isPlainObject(mod) && !EJSON._isCustomType(mod))) {
+            throw new Error("Only plain objects may be used as replacement" + " documents in MSSQLDB");
+    }
+
+    if (!options) options = {};
+
+    var write = self._maybeBeginWrite();
+    var refresh = function () {
+        self._refresh(collection_name, selector);
+    };
+
+    callback = writeCallback(write, refresh, callback);
+
+    try {
+        var collection = self.rawCollection(collection_name);
+        var mongoOpts = {safe: true};
+
+        // explictly enumerate options that minimongo supports
+        if (options.upsert)
+            mongoOpts.upsert = true;
+
+        if (options.multi)
+            mongoOpts.multi = true;
+
+        // Lets you get a more more full result from MSSQLDB. Use with caution:
+        // might not work with C.upsert (as opposed to C.update({upsert:true}) or
+        // with simulated upsert.
+        if (options.fullResult)
+            mongoOpts.fullResult = true;
+
+        var mongoSelector = replaceTypes(selector, replaceMeteorAtomWithMSSQL);
+        var mongoMod = replaceTypes(mod, replaceMeteorAtomWithMSSQL);
+
+        var isModify = isModificationMod(mongoMod);
+        var knownId = selector._id || mod._id;
+
+        if (options._forbidReplace && ! isModify) {
+            var err = new Error("Invalid modifier. Replacements are forbidden.");
+
+            if (callback) {
+                return callback(err);
+            }
+            else {
+                throw err;
+            }
+        }
+
+        if (options.upsert && (! knownId) && options.insertedId) {
+            // XXX If we know we're using MSSQL 2.6 (and this isn't a replacement)
+            //     we should be able to just use $setOnInsert instead of this
+            //     simulated upsert thing. (We can't use $setOnInsert with
+            //     replacements because there's nowhere to write it, and $setOnInsert
+            //     can't set _id on MSSQL 2.4.)
+            //
+            //     Also, in the future we could do a real upsert for the mongo id
+            //     generation case, if the the node mongo driver gives us back the id
+            //     of the upserted doc (which our current version does not).
+            //
+            //     For more context, see
+            //     https://github.com/meteor/meteor/issues/2278#issuecomment-64252706
+            simulateUpsertWithInsertedId(
+                collection, mongoSelector, mongoMod,
+                isModify, options,
+                // This callback does not need to be bindEnvironment'ed because
+                // simulateUpsertWithInsertedId() wraps it and then passes it through
+                // bindEnvironmentForWrite.
+                function (error, result) {
+                    // If we got here via a upsert() call, then options._returnObject will
+                    // be set and we should return the whole object. Otherwise, we should
+                    // just return the number of affected docs to match the mongo API.
+                    if (result && ! options._returnObject) {
+                        callback(error, result.numberAffected);
+                    }
+                    else {
+                        callback(error, result);
+                    }
+                }
+            );
+        }
+        else {
+            collection.update(
+                mongoSelector, mongoMod, mongoOpts,
+                bindEnvironmentForWrite(function (err, result) {
+                    if (! err) {
+                        var meteorResult = transformResult(result);
+                        if (meteorResult && options._returnObject) {
+                            // If this was an upsert() call, and we ended up
+                            // inserting a new doc and we know its id, then
+                            // return that id as well.
+
+                            if (options.upsert && meteorResult.insertedId && knownId) {
+                                meteorResult.insertedId = knownId;
+                            }
+                            callback(err, meteorResult);
+                        }
+                        else {
+                            callback(err, meteorResult.numberAffected);
+                        }
+                    } 
+                    else {
+                        callback(err);
+                    }
+            }));
+        }
+    }
+    catch (e) {
+        write.committed();
+        throw e;
+    }
 };
 
 // XXX MSSQLConnection.upsert() does not return the id of the inserted document
