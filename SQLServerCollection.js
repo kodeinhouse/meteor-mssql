@@ -127,6 +127,20 @@ export class SQLServerCollection
         return query;
     }
 
+    getSQLValue(value)
+    {
+        if(typeof value == 'string')
+            return `'${value}'`;
+        else
+            if(typeof value == 'number')
+                return value;
+            else
+                if(value instanceof Date)
+                    return value.toISOString().slice(0, 19).replace('T', ' ');
+                else
+                    return 'NULL';
+    }
+
     find(selector, fields, options)
     {
         let query = this.getQuery(selector, fields, options);
@@ -137,5 +151,36 @@ export class SQLServerCollection
         this.debug && console.log(options);
 
         return new DatabaseCursor(this.database, this.name, query);
-    };
+    }
+
+    insert(fields, options, callback)
+    {
+        let mapping = this.getSchemaProperties();
+        let properties = [];
+
+        for(let key in fields)
+        {
+            properties.push({key: mapping[key], value: fields[key]});
+        }
+
+        properties.splice(properties.map(c => { return c.key}).indexOf('_id'), 1);
+
+        let fieldsPart = properties.map(c => { return `[${c.key}]`; }).join(', ');
+        let valuesPart = properties.map(c => { return this.getSQLValue(c.value)}).join(', ');
+
+        let query = `INSERT INTO [${this.name}] (${fieldsPart}) VALUES (${valuesPart}); SELECT SCOPE_IDENTITY() AS id`;
+
+        return this.database.insert(query, function(error, result){
+            if(result)
+                result = Array.isArray(result.recordset) && result.recordset.length > 0 ? result.recordset[0].id : null;
+
+            // Callback coming from MSSQLConnection expectes the generated id
+            callback(error, result);
+        });
+    }
+
+    update(selector, fields)
+    {
+
+    }
 }

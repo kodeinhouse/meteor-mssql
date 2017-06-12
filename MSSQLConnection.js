@@ -175,43 +175,45 @@ MSSQLConnection.prototype._onFailover = function (callback) {
   return this._onFailoverHook.register(callback);
 };
 
-MSSQLConnection.prototype._insert = function (collection_name, document,
-                                              callback) {
-  var self = this;
+MSSQLConnection.prototype._insert = function (collection_name, document, callback) {
+    var self = this;
 
-  var sendError = function (e) {
-    if (callback)
-      return callback(e);
-    throw e;
-  };
+    var sendError = function (e) {
+        if (callback)
+            return callback(e);
 
-  if (collection_name === "___meteor_failure_test_collection") {
-    var e = new Error("Failure test");
-    e.expected = true;
-    sendError(e);
-    return;
-  }
+        throw e;
+    };
 
-  if (!(LocalCollection._isPlainObject(document) &&
-        !EJSON._isCustomType(document))) {
-    sendError(new Error(
-      "Only plain objects may be inserted into MSSQLDB"));
-    return;
-  }
+    if (collection_name === "___meteor_failure_test_collection") {
+        var e = new Error("Failure test");
+        e.expected = true;
+        sendError(e);
+        return;
+    }
 
-  var write = self._maybeBeginWrite();
-  var refresh = function () {
-    Meteor.refresh({collection: collection_name, id: document._id });
-  };
-  callback = bindEnvironmentForWrite(writeCallback(write, refresh, callback));
-  try {
-    var collection = self.rawCollection(collection_name);
-    collection.insert(replaceTypes(document, replaceMeteorAtomWithMSSQL),
-                      {safe: true}, callback);
-  } catch (err) {
-    write.committed();
-    throw err;
-  }
+    if (!(LocalCollection._isPlainObject(document) && !EJSON._isCustomType(document))) {
+        sendError(new Error(
+            "Only plain objects may be inserted into MSSQLDB"));
+            return;
+    }
+
+    var write = self._maybeBeginWrite();
+    var refresh = function () {
+        Meteor.refresh({collection: collection_name, id: document._id });
+    };
+
+    callback = bindEnvironmentForWrite(writeCallback(write, refresh, callback));
+
+    try {
+        var collection = self.rawCollection(collection_name);
+
+        collection.insert(replaceTypes(document, replaceMeteorAtomWithMSSQL), {safe: true}, callback);
+    }
+    catch (err) {
+        write.committed();
+        throw err;
+    }
 };
 
 // Cause queries that may be affected by the selector to poll in this write
@@ -844,19 +846,24 @@ var writeCallback = function (write, refresh, callback) {
       // XXX We don't have to run this on error, right?
       try {
         refresh();
-      } catch (refreshErr) {
+      }
+      catch (refreshErr) {
         if (callback) {
           callback(refreshErr);
           return;
-        } else {
+        }
+        else {
           throw refreshErr;
         }
       }
     }
+
     write.committed();
+
     if (callback) {
       callback(err, result);
-    } else if (err) {
+    }
+    else if (err) {
       throw err;
     }
   };

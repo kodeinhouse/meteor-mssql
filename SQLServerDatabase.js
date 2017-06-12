@@ -20,6 +20,39 @@ export class SQLServerDatabase
     {
         return this.schemas[collection];
     }
+
+    insert(query, callback)
+    {
+        let future = new Future();
+
+        try
+        {
+            if(!query)
+                throw "You must provide an insert query";
+
+            this.getConnection().then(function(pool){
+                let request = new Sql.driver.Request();
+
+                request.query(query, function(error, result){
+                    if(callback)
+                        callback(error, result);
+
+                    if(!error)
+                        future['return'](result);
+                });
+            });
+
+            return future.wait();
+        }
+        catch(ex)
+        {
+            console.log(ex);
+        }
+        finally
+        {
+            // What should we put here?
+        }
+    }
 }
 
 SQLServerDatabase.prototype.collection = function(name){
@@ -41,7 +74,7 @@ SQLServerDatabase.prototype.getRequest = function()
     return new Sql.driver.Request(connection);
 };
 
-SQLServerDatabase.prototype.executeQuery = function(query)
+SQLServerDatabase.prototype.executeQuery = function(query, callback)
 {
     let future = new Future();
 
@@ -67,6 +100,7 @@ SQLServerDatabase.prototype.executeQuery = function(query)
         let result = future.wait();
 
         this.debug && console.log('SQLServerDatabase.executeQuery:returning');
+
         this.debug && console.log('----------------------------------------');
 
         return result;
