@@ -26,6 +26,11 @@ export class SQLServerDatabase
         return this.execute(query, callback);
     }
 
+    remove(query, callback)
+    {
+        return this.execute(query, callback);
+    }
+
     update(query, callback)
     {
         return this.execute(query, callback);

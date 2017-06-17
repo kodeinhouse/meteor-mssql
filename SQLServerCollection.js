@@ -142,7 +142,10 @@ export class SQLServerCollection
                     return `'${value}'`;
                 }
                 else
-                    return 'NULL';
+                    if(typeof value == 'boolean')
+                        return value ? 1 : 0;
+                    else
+                        return 'NULL';
     }
 
     find(selector, fields, options)
@@ -168,16 +171,19 @@ export class SQLServerCollection
         }
 
         // Thinking currently only on a table with an IDENTITY primary key
-        properties.splice(properties.map(c => { return c.key}).indexOf('_id'), 1);
+        properties.splice(properties.map(c => { return c.key}).indexOf(mapping['_id']), 1);
 
         let fieldsPart = properties.map(c => { return `[${c.key}]`; }).join(', ');
         let valuesPart = properties.map(c => { return this.getSQLValue(c.value)}).join(', ');
 
         let query = `INSERT INTO [${this.name}] (${fieldsPart}) VALUES (${valuesPart}); SELECT SCOPE_IDENTITY() AS id`;
         console.log(query);
+
         return this.database.insert(query, function(error, result){
-            if(result)
+            if(!error && result)
                 result = Array.isArray(result.recordset) && result.recordset.length > 0 ? result.recordset[0].id : null;
+            else
+                console.log(error);
 
             // Callback coming from MSSQLConnection expectes the generated id
             callback(error, result);
@@ -203,7 +209,29 @@ export class SQLServerCollection
         let conditions = this.getSQLProperties(selector);
 
         let query = `UPDATE [${this.name}] SET ${properties} WHERE ${conditions}`;
+
+        return this.database.update(query, function(error, result){
+
+            if(result)
+            {
+                let rowsAffected = result.rowsAffected;
+
+                // Callback coming from MSSQLConnection expectes an object in the following form {result: {n: #}}
+                result = {result: {n: (Array.isArray(rowsAffected) && rowsAffected.length > 0 ? rowsAffected[0] : null)}};
+            }
+
+            callback(error, result);
+        });
+    }
+
+    remove(selector, options, callback)
+    {
+        let conditions = this.getSQLProperties(selector);
+
+        let query = `DELETE FROM [${this.name}] WHERE ${conditions}`;
+
         console.log(query);
+
         return this.database.update(query, function(error, result){
 
             if(result)
