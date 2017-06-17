@@ -40,33 +40,29 @@ export class SQLServerDatabase
     {
         let future = new Future();
 
-        try
-        {
-            if(!query)
-                throw "You must provide an statement query";
+        if(!query)
+            throw "You must provide an statement query";
 
-            this.getConnection().then(function(pool){
-                let request = new Sql.driver.Request();
+        this.getConnection().then(function(pool){
+            let request = new Sql.driver.Request();
 
-                request.query(query, function(error, result){
-                    if(callback)
-                        callback(error, result);
+            request.query(query, function(error, result){
+                if(!error && callback)
+                    callback(error, result);
 
-                    if(!error)
-                        future['return'](result);
-                });
+                if(!error)
+                    future['return'](result);
+                else
+                {
+                    // Log query first to try it out on the management studio to see what exactly is giving an error
+                    console.log(query);
+
+                    future['throw'](error);
+                }
             });
+        });
 
-            return future.wait();
-        }
-        catch(ex)
-        {
-            console.log(ex);
-        }
-        finally
-        {
-            // What should we put here?
-        }
+        return future.wait();
     }
 }
 

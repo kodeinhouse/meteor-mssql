@@ -148,6 +148,19 @@ export class SQLServerCollection
                         return 'NULL';
     }
 
+    getSQLProperties(fields)
+    {
+        let properties = this.getSchemaProperties();
+        let items = [];
+
+        for(let key in fields)
+        {
+            items.push({key: properties[key], value: fields[key]});
+        }
+
+        return items.map(c => {return `[${c.key}] = ${this.getSQLValue(c.value)}`; }).join(', ');
+    }
+
     find(selector, fields, options)
     {
         let query = this.getQuery(selector, fields, options);
@@ -177,30 +190,15 @@ export class SQLServerCollection
         let valuesPart = properties.map(c => { return this.getSQLValue(c.value)}).join(', ');
 
         let query = `INSERT INTO [${this.name}] (${fieldsPart}) VALUES (${valuesPart}); SELECT SCOPE_IDENTITY() AS id`;
-        console.log(query);
 
         return this.database.insert(query, function(error, result){
             if(!error && result)
                 result = Array.isArray(result.recordset) && result.recordset.length > 0 ? result.recordset[0].id : null;
-            else
-                console.log(error);
 
             // Callback coming from MSSQLConnection expectes the generated id
+            // This will never be called on error
             callback(error, result);
         });
-    }
-
-    getSQLProperties(fields)
-    {
-        let properties = this.getSchemaProperties();
-        let items = [];
-
-        for(let key in fields)
-        {
-            items.push({key: properties[key], value: fields[key]});
-        }
-
-        return items.map(c => {return `[${c.key}] = ${this.getSQLValue(c.value)}`; }).join(', ');
     }
 
     update(selector, fields, options, callback)
@@ -229,8 +227,6 @@ export class SQLServerCollection
         let conditions = this.getSQLProperties(selector);
 
         let query = `DELETE FROM [${this.name}] WHERE ${conditions}`;
-
-        console.log(query);
 
         return this.database.update(query, function(error, result){
 

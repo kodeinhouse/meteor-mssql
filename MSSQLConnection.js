@@ -431,7 +431,7 @@ MSSQLConnection.prototype._update = function (collection_name, selector, mod, op
                         else {
                             callback(err, meteorResult.numberAffected);
                         }
-                    } 
+                    }
                     else {
                         callback(err);
                     }
@@ -854,31 +854,32 @@ var replaceMeteorAtomWithMSSQL = function (document) {
 // observer "has been notified" if its callback has returned.
 
 var writeCallback = function (write, refresh, callback) {
-  return function (err, result) {
-    if (! err) {
-      // XXX We don't have to run this on error, right?
-      try {
-        refresh();
+  return function (err, result)
+  {
+      if (! err) {
+          // XXX We don't have to run this on error, right?
+          try {
+              refresh();
+          }
+          catch (refreshErr) {
+              if (callback) {
+                  callback(refreshErr);
+                  return;
+              }
+              else {
+                  throw refreshErr;
+              }
+          }
       }
-      catch (refreshErr) {
-        if (callback) {
-          callback(refreshErr);
-          return;
-        }
-        else {
-          throw refreshErr;
-        }
+
+      write.committed();
+
+      if (callback) {
+          callback(err, result);
       }
-    }
-
-    write.committed();
-
-    if (callback) {
-      callback(err, result);
-    }
-    else if (err) {
-      throw err;
-    }
+      else if (err) {
+          throw err;
+      }
   };
 };
 
