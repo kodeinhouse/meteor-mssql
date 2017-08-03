@@ -6,7 +6,7 @@ export class SQLServerDatabase
 {
     constructor(options)
     {
-        this.debug = false;
+        this.debug = true;
         this.options = options.settings;
         this.schemas = [];
     }
@@ -72,9 +72,13 @@ SQLServerDatabase.prototype.collection = function(name){
 
 SQLServerDatabase.prototype.getConnection = function(){
     if(!this.connection)
-        this.connection = Sql.driver.connect(this.options);
+        this.connection = Sql.driver.connect(this.options, error => {
+            throw error;
+        });
 
     this.debug && console.log('SQLServerDatabase.getConnection');
+
+    // This must be a ConnectionPool instance
     return this.connection;
 };
 
@@ -91,22 +95,28 @@ SQLServerDatabase.prototype.executeQuery = function(query, callback)
 
     this.debug && console.log('SQLServerDatabase.executeQuery:before ' + query);
 
-    this.getConnection().then(function(pool){
-        let request = new Sql.driver.Request();
+    //this.getConnection().then(function(pool){
+
+        let request = new Sql.driver.Request(this.getConnection());
 
         request.query(query, function(error, result) {
             if(!error)
             {
-                this.debug && console.log('SQLServerDatabase.executeQuery:during');
+                console.log('SQLServerDatabase.executeQuery:during');
 
                 future['return'](result.recordset);
             }
             else
-                console.log(error);
+            {
+                console.log('SQLServerDatabase.executeQuery:error');
+
+                future.throw(error);
+            }
         });
-    });
+    //});
 
     this.debug && console.log('SQLServerDatabase.executeQuery:waiting');
+
     try {
         let result = future.wait();
 
@@ -117,9 +127,6 @@ SQLServerDatabase.prototype.executeQuery = function(query, callback)
         return result;
     }
     catch (e) {
-        console.log(e);
-    }
-    finally {
-
+        throw e;
     }
 };

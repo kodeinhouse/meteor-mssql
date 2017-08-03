@@ -13,9 +13,17 @@ export class DatabaseCursor
 DatabaseCursor.prototype.read = function()
 {
     this.index = 0;
-    let result = this.database.executeQuery(this.query);
+    let result;
 
-    this.processResult(result);
+    try {
+        result = this.database.executeQuery(this.query);
+    }
+    catch (e) {
+        result = [];
+    }
+    finally {
+        this.processResult(result);
+    }
 };
 
 DatabaseCursor.prototype.getTransform = function(){

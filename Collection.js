@@ -444,7 +444,7 @@ export class Collection
             return chooseReturnValueFromCollectionResult(result);
         }
         catch (e) {
-            
+
             if (callback) {
                 callback(e);
                 return null;

@@ -153,10 +153,21 @@ export class SQLServerCollection
         let properties = this.getSchemaProperties();
         let items = [];
 
-        for(let key in fields)
+        //{ name: 'XXXX', contact: {firstName: 'dfaf'}}
+
+        let convertProperties = function(fields, properties)
         {
-            items.push({key: properties[key], value: fields[key]});
-        }
+            for(let key in fields)
+            {
+                if(typeof properties[key] != 'object')
+                    items.push({key: properties[key], value: fields[key]});
+                else
+                    if(Object.keys(properties[key]).length > 0)
+                        convertProperties(fields[key], properties[key]);
+            }
+        };
+
+        convertProperties(fields, properties);
 
         return items.map(c => {return `[${c.key}] = ${this.getSQLValue(c.value)}`; }).join(', ');
     }
