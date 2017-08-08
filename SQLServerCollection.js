@@ -96,7 +96,7 @@ export class SQLServerCollection
 
         for(let key in fields)
         {
-            sorts.push(properties[key] + ' ' + fields[key] == 1 ? 'ASC' : 'DESC');
+            sorts.push(properties[key] + ' ' + (fields[key] == 1 ? 'ASC' : 'DESC'));
         }
 
         return sorts.join(', ');

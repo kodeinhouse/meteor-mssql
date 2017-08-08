@@ -43,24 +43,42 @@ export class SQLServerDatabase
         if(!query)
             throw "You must provide an statement query";
 
-        let request = new Sql.driver.Request(this.getConnection());
+        Sql.driver.connect(this.options, error => {
+            if(error)
+                future.thrown(error);
 
-        request.query(query, function(error, result){
-            if(!error && callback)
-                callback(error, result);
+            new Sql.driver.Request().query(query, function(error, result) {
+                if(!error && callback)
+                    callback(error, result);
 
-            if(!error)
-                future['return'](result);
-            else
-            {
-                // Log query first to try it out on the management studio to see what exactly is giving an error
-                console.log(query);
+                if(!error)
+                    future['return'](result);
+                else
+                {
+                    // Log query first to try it out on the management studio to see what exactly is giving an error
+                    console.log(query);
 
-                future['throw'](error);
-            }
+                    future['throw'](error);
+                }
+            });
         });
 
-        return future.wait();
+        try {
+            let result = future.wait();
+
+            this.debug && console.log('SQLServerDatabase.execute:returning');
+
+            this.debug && console.log('----------------------------------------');
+
+            return result;
+        }
+        catch (e) {
+            throw e;
+        }
+        finally
+        {
+            Sql.driver.close();
+        }
     }
 
     collection(name){
@@ -68,6 +86,8 @@ export class SQLServerDatabase
     }
 
     getConnection(){
+        let future = new Future();
+
         if(!this.connection)
             this.connection = Sql.driver.connect(this.options, error => {
                 throw error;
@@ -92,11 +112,11 @@ export class SQLServerDatabase
 
         this.debug && console.log('SQLServerDatabase.executeQuery:before ' + query);
 
-        //this.getConnection().then(function(pool){
+        Sql.driver.connect(this.options, error => {
+            if(error)
+                future.thrown(error);
 
-            let request = new Sql.driver.Request(this.getConnection());
-
-            request.query(query, function(error, result) {
+            new Sql.driver.Request().query(query, function(error, result) {
                 if(!error)
                 {
                     console.log('SQLServerDatabase.executeQuery:during');
@@ -110,7 +130,7 @@ export class SQLServerDatabase
                     future.throw(error);
                 }
             });
-        //});
+        });
 
         this.debug && console.log('SQLServerDatabase.executeQuery:waiting');
 
@@ -125,6 +145,10 @@ export class SQLServerDatabase
         }
         catch (e) {
             throw e;
+        }
+        finally
+        {
+            Sql.driver.close();
         }
     }
 }
