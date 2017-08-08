@@ -89,6 +89,19 @@ export class SQLServerCollection
         return conditions.join(' ');
     }
 
+    getSort(fields)
+    {
+        let sorts = [];
+        let properties = this.getSchemaProperties();
+
+        for(let key in fields)
+        {
+            sorts.push(properties[key] + ' ' + fields[key] == 1 ? 'ASC' : 'DESC');
+        }
+
+        return sorts.join(', ');
+    }
+
     getQuery(selector, fields, options)
     {
         let query = null;
@@ -101,12 +114,15 @@ export class SQLServerCollection
             else
                 if(typeof selector == 'object')
                 {
+                    let sort = this.getSort(options.sort);
+
                     if(Object.keys(selector).length == 0)
                     {
                         query = 'SELECT ';
                         query += options && options.limit ? `TOP ${options.limit} ` : '';
                         query += this.getFields(fields) + ' ';
                         query += `FROM [${this.name}] `;
+                        query += (sort ? `ORDER BY ${sort}` : '');
                     }
                     else
                     {
@@ -116,7 +132,8 @@ export class SQLServerCollection
                         query += options && options.limit ? `TOP ${options.limit} ` : '';
                         query += this.getFields(fields) + ' ';
                         query += `FROM [${this.name}] `;
-                        query += `WHERE ${condition}`;
+                        query += `WHERE ${condition} `;
+                        query += (sort ? `ORDER BY ${sort}` : '');
                     }
                 }
                 else
@@ -186,25 +203,38 @@ export class SQLServerCollection
 
     insert(fields, options, callback)
     {
+        let schema = this.schema;
         let mapping = this.getSchemaProperties();
         let properties = [];
 
         for(let key in fields)
         {
-            properties.push({key: mapping[key], value: fields[key]});
+            if(mapping.hasOwnProperty(key))
+                properties.push({key: mapping[key], value: fields[key]});
         }
 
         // Thinking currently only on a table with an IDENTITY primary key
-        properties.splice(properties.map(c => { return c.key}).indexOf(mapping['_id']), 1);
+        if(schema.primaryKey.identity)
+            properties.splice(properties.map(c => { return c.key}).indexOf(mapping['_id']), 1);
 
         let fieldsPart = properties.map(c => { return `[${c.key}]`; }).join(', ');
         let valuesPart = properties.map(c => { return this.getSQLValue(c.value)}).join(', ');
 
-        let query = `INSERT INTO [${this.name}] (${fieldsPart}) VALUES (${valuesPart}); SELECT SCOPE_IDENTITY() AS id`;
+        let query = `INSERT INTO [${this.name}] (${fieldsPart}) VALUES (${valuesPart});`;
+
+        if(schema.primaryKey.identity)
+            query += 'SELECT SCOPE_IDENTITY() AS id';
 
         return this.database.insert(query, function(error, result){
             if(!error && result)
-                result = Array.isArray(result.recordset) && result.recordset.length > 0 ? result.recordset[0].id : null;
+            {
+                if(schema.primaryKey.identity)
+                    result = Array.isArray(result.recordset) && result.recordset.length > 0 ? result.recordset[0].id : null;
+                else
+                    result = fields._id;
+            }
+
+
 
             // Callback coming from MSSQLConnection expectes the generated id
             // This will never be called on error

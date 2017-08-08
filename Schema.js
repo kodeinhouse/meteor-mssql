@@ -2,6 +2,12 @@ export class Schema
 {
     constructor(config)
     {
+        config = Object.assign({primaryKey: {
+            identity: true
+        }}, config);
+
+        Object.assign(this, config);
+        
         this.transform = this.createTransform(config.transform);
     }
 
@@ -34,7 +40,7 @@ export class Schema
                         // Remove that from the current object
                         delete properties.aliases;
 
-                        // Merget properties
+                        // Merge properties
                         properties = Object.assign(properties, aliases);
                     }
 
