@@ -3,13 +3,13 @@ CollectionHelper = {};
 CollectionHelper._publishCursor = function (cursor, sub, collection) {
   var observeHandle = cursor.observeChanges({
     added: function (id, fields) {
-      sub.added(collection, id, fields);
+        sub.added(collection, id, fields);
     },
     changed: function (id, fields) {
-      sub.changed(collection, id, fields);
+        sub.changed(collection, id, fields);
     },
     removed: function (id) {
-      sub.removed(collection, id);
+        sub.removed(collection, id);
     }
   });
 
@@ -17,7 +17,9 @@ CollectionHelper._publishCursor = function (cursor, sub, collection) {
   // possibly calling _publishCursor on multiple returned cursors.
 
   // register stop callback (expects lambda w/ no args).
-  sub.onStop(function () {observeHandle.stop();});
+  sub.onStop(function () {
+      observeHandle.stop();
+  });
 
   // return the observeHandle in case it needs to be stopped early
   return observeHandle;

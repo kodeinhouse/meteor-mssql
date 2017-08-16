@@ -6,7 +6,7 @@ export class SQLServerDatabase
 {
     constructor(options)
     {
-        this.debug = true;
+        this.debug = false;
         this.options = options.settings;
         this.schemas = [];
     }
@@ -119,13 +119,13 @@ export class SQLServerDatabase
             new Sql.driver.Request().query(query, function(error, result) {
                 if(!error)
                 {
-                    console.log('SQLServerDatabase.executeQuery:during');
+                    this.debug && console.log('SQLServerDatabase.executeQuery:during');
 
                     future['return'](result.recordset);
                 }
                 else
                 {
-                    console.log('SQLServerDatabase.executeQuery:error');
+                    this.debug && console.log('SQLServerDatabase.executeQuery:error');
 
                     future.throw(error);
                 }

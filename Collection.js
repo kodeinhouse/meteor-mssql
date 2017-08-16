@@ -656,3 +656,4 @@ function wrapCallback(callback, convertResult) {
 }
 
 MSSQL.Collection = Collection;
+MSSQL.CollectionHelper = CollectionHelper;
