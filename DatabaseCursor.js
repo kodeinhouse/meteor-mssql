@@ -13,13 +13,13 @@ export class DatabaseCursor
 DatabaseCursor.prototype.read = function()
 {
     this.index = 0;
-    let result;
+    let result = [];
 
     try {
         result = this.database.executeQuery(this.query);
     }
     catch (e) {
-        result = [];
+        throw e;
     }
     finally {
         this.processResult(result);

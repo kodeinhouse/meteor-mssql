@@ -7,7 +7,7 @@ export class Schema
         }}, config);
 
         Object.assign(this, config);
-        
+
         this.transform = this.createTransform(config.transform);
     }
 
@@ -28,9 +28,7 @@ export class Schema
                 {
                     let self = this;
 
-                    this.properties = transform;
-
-                    let properties = Object.assign({}, this.properties);
+                    let properties = Object.assign({}, transform);
 
                     if(properties.aliases)
                     {
@@ -43,6 +41,8 @@ export class Schema
                         // Merge properties
                         properties = Object.assign(properties, aliases);
                     }
+
+                    this.properties = properties;
 
                     return function(record, index){
 

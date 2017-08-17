@@ -110,45 +110,28 @@ export class SQLServerDatabase
     {
         let future = new Future();
 
-        this.debug && console.log('SQLServerDatabase.executeQuery:before ' + query);
-
-        Sql.driver.connect(this.options, error => {
+        let sqlConnection = new Sql.driver.ConnectionPool(this.options, function(error){
             if(error)
-                future.thrown(error);
+                future['thrown'](error);
 
-            new Sql.driver.Request().query(query, function(error, result) {
+            new Sql.driver.Request(sqlConnection).query(query, function(error, result) {
                 if(!error)
                 {
                     this.debug && console.log('SQLServerDatabase.executeQuery:during');
 
                     future['return'](result.recordset);
+
+                    sqlConnection.close();
                 }
                 else
                 {
                     this.debug && console.log('SQLServerDatabase.executeQuery:error');
 
-                    future.throw(error);
+                    future['thrown'](error);
                 }
             });
         });
 
-        this.debug && console.log('SQLServerDatabase.executeQuery:waiting');
-
-        try {
-            let result = future.wait();
-
-            this.debug && console.log('SQLServerDatabase.executeQuery:returning');
-
-            this.debug && console.log('----------------------------------------');
-
-            return result;
-        }
-        catch (e) {
-            throw e;
-        }
-        finally
-        {
-            Sql.driver.close();
-        }
+        return future.wait();
     }
 }

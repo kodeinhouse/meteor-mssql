@@ -72,6 +72,7 @@ export class SQLServerCollection
         // transform = { name: CompanyName }
         let properties = this.getSchemaProperties();
         let conditions = [];
+        let self = this;
 
         // selector = { name: 'XXXX' }
         for(let key in selector)
@@ -83,7 +84,7 @@ export class SQLServerCollection
         }
 
         conditions = conditions.map(function(item){
-            return `${item.key} = ${item.value}`;
+            return `${item.key} = ${self.getSQLValue(item.value)}`;
         })
 
         return conditions.join(' ');
