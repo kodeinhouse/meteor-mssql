@@ -3,7 +3,7 @@ export class Schema
     constructor(config)
     {
         config = Object.assign({primaryKey: {
-            identity: true
+            identity: false // set identity false by default
         }}, config);
 
         Object.assign(this, config);
@@ -38,9 +38,14 @@ export class Schema
                         // Remove that from the current object
                         delete properties.aliases;
 
+                        // Assign to another property to use it for the INSERT and UPDATE statements
+                        this.fields = Object.assign({}, properties);
+
                         // Merge properties
                         properties = Object.assign(properties, aliases);
                     }
+                    else
+                        this.fields = Object.assign({}, properties);
 
                     this.properties = properties;
 

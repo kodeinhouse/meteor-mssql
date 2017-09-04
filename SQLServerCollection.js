@@ -166,9 +166,8 @@ export class SQLServerCollection
                         return 'NULL';
     }
 
-    getSQLProperties(fields)
+    getSQLProperties(fields, properties)
     {
-        let properties = this.getSchemaProperties();
         let items = [];
 
         //{ name: 'XXXX', contact: {firstName: 'dfaf'}}
@@ -177,17 +176,25 @@ export class SQLServerCollection
         {
             for(let key in fields)
             {
-                if(typeof properties[key] != 'object')
-                    items.push({key: properties[key], value: fields[key]});
+                if(typeof properties[key] == 'undefined')
+                    continue;
                 else
-                    if(Object.keys(properties[key]).length > 0)
-                        convertProperties(fields[key], properties[key]);
+                    if(typeof properties[key] != 'object')
+                        items.push({key: properties[key], value: fields[key]});
+                    else
+                        if(Object.keys(properties[key]).length > 0)
+                            convertProperties(fields[key], properties[key]);
             }
         };
 
         convertProperties(fields, properties);
 
         return items.map(c => {return `[${c.key}] = ${this.getSQLValue(c.value)}`; }).join(', ');
+    }
+
+    getTableName()
+    {
+        return this.schema.table ? this.schema.table : this.name;
     }
 
     find(selector, fields, options)
@@ -205,7 +212,7 @@ export class SQLServerCollection
     insert(fields, options, callback)
     {
         let schema = this.schema;
-        let mapping = this.getSchemaProperties();
+        let mapping = schema.fields;
         let properties = [];
 
         for(let key in fields)
@@ -221,7 +228,7 @@ export class SQLServerCollection
         let fieldsPart = properties.map(c => { return `[${c.key}]`; }).join(', ');
         let valuesPart = properties.map(c => { return this.getSQLValue(c.value)}).join(', ');
 
-        let query = `INSERT INTO [${this.name}] (${fieldsPart}) VALUES (${valuesPart});`;
+        let query = `INSERT INTO [${this.getTableName()}] (${fieldsPart}) VALUES (${valuesPart});`;
 
         if(schema.primaryKey.identity)
             query += 'SELECT SCOPE_IDENTITY() AS id';
@@ -245,10 +252,10 @@ export class SQLServerCollection
 
     update(selector, fields, options, callback)
     {
-        let properties = this.getSQLProperties(fields.$set);
-        let conditions = this.getSQLProperties(selector);
+        let properties = this.getSQLProperties(fields.$set, this.schema.fields);
+        let conditions = this.getSQLProperties(selector, this.schema.fields);
 
-        let query = `UPDATE [${this.name}] SET ${properties} WHERE ${conditions}`;
+        let query = `UPDATE [${this.getTableName()}] SET ${properties} WHERE ${conditions}`;
 
         return this.database.update(query, function(error, result){
 
@@ -266,7 +273,7 @@ export class SQLServerCollection
 
     remove(selector, options, callback)
     {
-        let conditions = this.getSQLProperties(selector);
+        let conditions = this.getSQLProperties(selector, this.getSchemaProperties());
 
         let query = `DELETE FROM [${this.name}] WHERE ${conditions}`;
 

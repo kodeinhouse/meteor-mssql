@@ -56,7 +56,7 @@ export class SQLServerDatabase
                 else
                 {
                     // Log query first to try it out on the management studio to see what exactly is giving an error
-                    console.log(query);
+                    console.log(error);
 
                     future['throw'](error);
                 }
@@ -109,15 +109,22 @@ export class SQLServerDatabase
     executeQuery(query, callback)
     {
         let future = new Future();
+        let debug = this.debug;
+
+        debug && console.log('SQLServerDatabase.executeQuery:')
+        //this.debug && console.log(query);
+        debug && console.log('SQLServerDatabase.executeQuery: Connecting');
 
         let sqlConnection = new Sql.driver.ConnectionPool(this.options, function(error){
             if(error)
                 future['thrown'](error);
 
+            debug && console.log('SQLServerDatabase.executeQuery: Querying');
+
             new Sql.driver.Request(sqlConnection).query(query, function(error, result) {
                 if(!error)
                 {
-                    this.debug && console.log('SQLServerDatabase.executeQuery:during');
+                    debug && console.log('SQLServerDatabase.executeQuery: Returning');
 
                     future['return'](result.recordset);
 
@@ -125,12 +132,14 @@ export class SQLServerDatabase
                 }
                 else
                 {
-                    this.debug && console.log('SQLServerDatabase.executeQuery:error');
+                    debug && console.log('SQLServerDatabase.executeQuery:error ' + error.toString());
 
-                    future['thrown'](error);
+                    future['throw'](error);
                 }
             });
         });
+
+        debug && console.log('SQLServerDatabase.executeQuery: Waiting');
 
         return future.wait();
     }
