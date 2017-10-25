@@ -70,7 +70,51 @@ export class SQLServerCollection
         return columns.map(c => { return `[${c}]`}).join(', ');
     }
 
-    getCondition(selector)
+    getEqualOperator(value)
+    {
+        return (value == null ? 'IS' : '=');
+    }
+
+    getNotEqualOperator(value)
+    {
+        return (value == null ? 'IS NOT' : '<>');
+    }
+
+    getSQLOperator(operator, value)
+    {
+        if(operator == '$eq')
+            return this.getEqualOperator(value);
+        else
+            if(operator == '$ne')
+                return this.getNotEqualOperator(value);
+            else
+                throw "Operator not implemented.";
+    }
+
+    getOperator(property)
+    {
+        if(property.hasOwnProperty('$eq'))
+            return '$eq';
+        else
+            if(property.hasOwnProperty('$ne'))
+                return '$ne';
+            else
+                throw "Operator not implemented.";
+    }
+
+    getCondition(item)
+    {
+        let property = item.value;
+        let operator = this.getOperator(property);
+        let value = property[operator];
+
+        if(value == null)
+            return `${item.key} ${this.getSQLOperator(operator, value)} NULL`;
+        else
+            return `${item.key} ${this.getSQLOperator(operator, value)} ${this.getSQLValue(value)}`;
+    }
+
+    getConditions(selector)
     {
         // transform = { name: CompanyName }
         let properties = this.getSchemaProperties();
@@ -87,7 +131,17 @@ export class SQLServerCollection
         }
 
         conditions = conditions.map(function(item){
-            return `${item.key} = ${self.getSQLValue(item.value)}`;
+            if(item.value != null)
+            {
+                if(Object.keys(item.value || {}).length == 0)
+                    return `${item.key} = ${self.getSQLValue(item.value)}`;
+                else
+                    return self.getCondition(item); // The value was specified as an object like {$ne: 'xxx'}
+            }
+            else
+                return `${item.key} IS NULL`;
+
+
         })
 
         return conditions.join(' ');
@@ -130,13 +184,13 @@ export class SQLServerCollection
                     }
                     else
                     {
-                        let condition = this.getCondition(selector);
+                        let conditions = this.getConditions(selector);
 
                         query = 'SELECT ';
                         query += options && options.limit ? `TOP ${options.limit} ` : '';
                         query += this.getFields(fields) + ' ';
                         query += `FROM [${this.name}] `;
-                        query += `WHERE ${condition} `;
+                        query += `WHERE ${conditions} `;
                         query += (sort ? `ORDER BY ${sort}` : '');
                     }
                 }
