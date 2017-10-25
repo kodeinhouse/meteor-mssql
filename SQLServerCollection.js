@@ -49,7 +49,10 @@ export class SQLServerCollection
                 for(let key in properties){
                     // This is capable of transforming a plain object into an object like {name: 'CompanyName', contact: { name: 'ContactName', phone: 'ContactPhone'}}
                     if(typeof properties[key] != 'object')
-                        columns.push(properties[key]);
+                    {
+                        if(columns.indexOf(properties[key]) == -1)
+                            columns.push(properties[key]);
+                    }
                     else
                     {
                         let items = processKeys(properties[key]).filter(c => columns.indexOf(c) == -1);

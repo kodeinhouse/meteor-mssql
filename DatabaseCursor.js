@@ -46,7 +46,7 @@ DatabaseCursor.prototype.getTransform = function(){
 DatabaseCursor.prototype.processResult = function(result)
 {
     let transform = this.getTransform();
-
+    
     this.records = result.map(transform);
 };
 

@@ -54,7 +54,8 @@ export class Schema
                         let map = function(properties){
                             let clone = {};
 
-                            for(let key in properties){
+                            for(let key in properties) {
+
                                 // This is capable of transforming a plain object into an object like {name: 'CompanyName', contact: { name: 'ContactName', phone: 'ContactPhone'}}
                                 if(typeof properties[key] != 'object')
                                 {
@@ -62,7 +63,12 @@ export class Schema
 
                                     // Assign the property only if the record has it
                                     if(record.hasOwnProperty(field))
-                                        clone[key] = record[properties[key]];
+                                    {
+                                        if(key != '_id') // Default mongodb primary key
+                                            clone[key] = record[properties[key]];
+                                        else
+                                            clone[key] = record[properties[key]] != null ? record[properties[key]].toString() : null;
+                                    }
                                     else
                                         false && console.log("Schema.transform: Ignoring field " + field);
                                 }
