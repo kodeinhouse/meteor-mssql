@@ -26,6 +26,8 @@ export class Collection
     /// Main collection API
     ///
     constructor(name, options) {
+      this.debug = options.debug || false;
+
       var self = this;
       if (! (self instanceof Collection))
         throw new Error('use "new" to construct a MSSQL.Collection');
@@ -42,7 +44,7 @@ export class Collection
           "First argument to new MSSQL.Collection must be a string or null");
       }
 
-      console.log("mssql/collection: " + name);
+      this.debug && console.log('mssql/collection: ' + name);
 
       if (options && options.methods) {
         // Backwards compatibility hack with original signature (which passed
@@ -85,22 +87,22 @@ export class Collection
       {
           // note: nameless collections never have a connection
           self._connection = null;
-          console.log('mssql/collection: connection is null');
+          this.debug && console.log('mssql/collection: connection is null');
       }
       else if (options.connection)
       {
         self._connection = options.connection;
-        console.log('mssql/collection: connection was provided in options');
+        this.debug && console.log('mssql/collection: connection was provided in options');
       }
       else if (Meteor.isClient)
       {
         self._connection = Meteor.connection;
-        console.log('mssql/collection: connection is Meteor.connection');
+        this.debug && console.log('mssql/collection: connection is Meteor.connection');
       }
       else
       {
         self._connection = Meteor.server;
-        console.log('mssql/collection: connection is Meteor.server');
+        this.debug && console.log('mssql/collection: connection is Meteor.server');
       }
 
       if (!options._driver) {
@@ -112,7 +114,7 @@ export class Collection
             Drivers.DefaultRemoteCollectionDriver != null) {
           options._driver = Drivers.DefaultRemoteCollectionDriver(options);
           options._driver.attachSchema(name, options.schema);
-          console.log('Entro en el default remote collection driver');
+
         } else {
           options._driver = LocalCollectionDriver;
         }

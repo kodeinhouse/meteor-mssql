@@ -15,7 +15,6 @@ Npm.depends({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('1.4.4.2');
   api.use('ecmascript');
   api.use('allow-deny');
 

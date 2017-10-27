@@ -133,7 +133,7 @@ export class SQLServerCollection
         conditions = conditions.map(function(item){
             if(item.value != null)
             {
-                if(Object.keys(item.value || {}).length == 0)
+                if(item.value.constructor !== Object)
                     return `${item.key} = ${self.getSQLValue(item.value)}`;
                 else
                     return self.getCondition(item); // The value was specified as an object like {$ne: 'xxx'}
@@ -256,14 +256,19 @@ export class SQLServerCollection
 
     find(selector, fields, options)
     {
-        let query = this.getQuery(selector, fields, options);
+        try {
+            let query = this.getQuery(selector, fields, options);
 
-        this.debug && console.log('SQLServerCollection.find');
-        this.debug && console.log(selector);
-        this.debug && console.log(fields);
-        this.debug && console.log(options);
+            this.debug && console.log('SQLServerCollection.find');
+            this.debug && console.log(selector);
+            this.debug && console.log(fields);
+            this.debug && console.log(options);
 
-        return new DatabaseCursor(this.database, this.name, query);
+            return new DatabaseCursor(this.database, this.name, query);
+        } catch (e) {
+            console.log("Error while building query: " + e.toString());
+            throw e;
+        }
     }
 
     insert(fields, options, callback)
