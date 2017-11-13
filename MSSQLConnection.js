@@ -208,7 +208,9 @@ MSSQLConnection.prototype._insert = function (collection_name, document, callbac
     try {
         var collection = self.rawCollection(collection_name);
 
-        collection.insert(replaceTypes(document, replaceMeteorAtomWithMSSQL), {safe: true}, callback);
+        let result = collection.insert(replaceTypes(document, replaceMeteorAtomWithMSSQL), {safe: true}, callback);
+
+        return result;
     }
     catch (err) {
         write.committed();

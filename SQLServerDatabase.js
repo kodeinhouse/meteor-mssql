@@ -69,7 +69,7 @@ export class SQLServerDatabase
             this.debug && console.log('SQLServerDatabase.execute:returning');
 
             this.debug && console.log('----------------------------------------');
-
+            
             return result;
         }
         catch (e) {
@@ -110,7 +110,7 @@ export class SQLServerDatabase
     {
         let future = new Future();
         let debug = this.debug;
-        
+
         debug && console.log('SQLServerDatabase.executeQuery:')
         //this.debug && console.log(query);
         debug && console.log('SQLServerDatabase.executeQuery: Connecting');

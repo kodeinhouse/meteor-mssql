@@ -28,6 +28,10 @@ export class Collection
     constructor(name, options) {
       this.debug = options.debug || false;
 
+      // TODO: Remove this code from here. Was added as a solution to access the schema in the insert method
+      // to know if the collection is Identity or not
+      this.schema = options.schema;
+
       var self = this;
       if (! (self instanceof Collection))
         throw new Error('use "new" to construct a MSSQL.Collection');
@@ -408,7 +412,7 @@ export class Collection
                 }
             }
 
-            if (generateId) {
+            if (generateId && ((this.schema && !this.schema.primaryKey.identity) || !this.schema)) {
                 doc._id = this._makeNewID();
             }
         }

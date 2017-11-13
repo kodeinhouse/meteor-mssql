@@ -295,21 +295,28 @@ export class SQLServerCollection
         if(schema.primaryKey.identity)
             query += 'SELECT SCOPE_IDENTITY() AS id';
 
-        return this.database.insert(query, function(error, result){
+        // This result has full response object from the SQL.Request result
+        let id = null;
+
+        this.database.insert(query, function(error, result){
             if(!error && result)
             {
                 if(schema.primaryKey.identity)
+                {
                     result = Array.isArray(result.recordset) && result.recordset.length > 0 ? result.recordset[0].id : null;
+                }
                 else
                     result = fields._id;
+
+                id = result;
             }
-
-
 
             // Callback coming from MSSQLConnection expectes the generated id
             // This will never be called on error
             callback(error, result);
         });
+
+        return id;
     }
 
     update(selector, fields, options, callback)

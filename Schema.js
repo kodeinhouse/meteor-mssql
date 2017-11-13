@@ -2,8 +2,9 @@ export class Schema
 {
     constructor(config)
     {
+        // Set identity false by default
         config = Object.assign({primaryKey: {
-            identity: false // set identity false by default
+            identity: false
         }}, config);
 
         Object.assign(this, config);
