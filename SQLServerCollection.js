@@ -284,7 +284,7 @@ export class SQLServerCollection
         }
 
         // Thinking currently only on a table with an IDENTITY primary key
-        if(schema.primaryKey.identity)
+        if(schema.primaryKey.identity && fields.hasOwnProperty('_id'))
             properties.splice(properties.map(c => { return c.key}).indexOf(mapping['_id']), 1);
 
         let fieldsPart = properties.map(c => { return `[${c.key}]`; }).join(', ');
