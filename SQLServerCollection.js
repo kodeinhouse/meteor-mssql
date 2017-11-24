@@ -80,6 +80,26 @@ export class SQLServerCollection
         return (value == null ? 'IS NOT' : '<>');
     }
 
+    getGreaterThanOrEqualOperator(value)
+    {
+        return '>=';
+    }
+
+    getGreaterThanOperator(value)
+    {
+        return '>';
+    }
+
+    getLessThanOrEqualOperator(value)
+    {
+        return '<=';
+    }
+
+    getLessThanOperator(value)
+    {
+        return '<';
+    }
+
     getSQLOperator(operator, value)
     {
         if(operator == '$eq')
@@ -88,7 +108,19 @@ export class SQLServerCollection
             if(operator == '$ne')
                 return this.getNotEqualOperator(value);
             else
-                throw "Operator not implemented.";
+                if(operator == '$lte')
+                    return this.getLessThanOrEqualOperator(value);
+                else
+                    if(operator == '$gte')
+                        return this.getGreaterThanOrEqualOperator(value);
+                    else
+                        if(operator == '$lt')
+                            return this.getLessThanOperator(value);
+                        else
+                            if(operator == '$gt')
+                                return this.getGreaterThanOperator(value);
+                            else
+                                throw `Operator ${operator} not implemented.`;
     }
 
     getOperator(property)
@@ -99,7 +131,19 @@ export class SQLServerCollection
             if(property.hasOwnProperty('$ne'))
                 return '$ne';
             else
-                throw "Operator not implemented.";
+                if(property.hasOwnProperty('$gte'))
+                    return '$gte';
+                else
+                    if(property.hasOwnProperty('$gt'))
+                        return '$gt';
+                    else
+                        if(property.hasOwnProperty('$lte'))
+                            return '$lte';
+                        else
+                            if(property.hasOwnProperty('$lt'))
+                                return '$lt';
+                            else
+                                throw `Operator ${operator} not implemented.`;
     }
 
     getCondition(item)
@@ -140,11 +184,9 @@ export class SQLServerCollection
             }
             else
                 return `${item.key} IS NULL`;
+        });
 
-
-        })
-
-        return conditions.join(' ');
+        return conditions.join(' AND ');
     }
 
     getSort(fields)
