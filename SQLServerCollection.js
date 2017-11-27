@@ -364,7 +364,8 @@ export class SQLServerCollection
     update(selector, fields, options, callback)
     {
         let properties = this.getSQLProperties(fields.$set, this.schema.fields);
-        let conditions = this.getSQLProperties(selector, this.schema.fields);
+
+        let conditions = this.getConditions(selector);
 
         let query = `UPDATE [${this.getTableName()}] SET ${properties} WHERE ${conditions}`;
 

@@ -69,7 +69,7 @@ export class SQLServerDatabase
             this.debug && console.log('SQLServerDatabase.execute:returning');
 
             this.debug && console.log('----------------------------------------');
-            
+
             return result;
         }
         catch (e) {
