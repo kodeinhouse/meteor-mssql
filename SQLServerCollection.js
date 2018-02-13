@@ -75,33 +75,31 @@ export class SQLServerCollection
         return (value == null ? 'IS' : '=');
     }
 
-    getNotEqualOperator(value)
-    {
+    getNotEqualOperator(value){
         return (value == null ? 'IS NOT' : '<>');
     }
 
-    getGreaterThanOrEqualOperator(value)
-    {
+    getGreaterThanOrEqualOperator(value){
         return '>=';
     }
 
-    getGreaterThanOperator(value)
-    {
+    getGreaterThanOperator(value){
         return '>';
     }
 
-    getLessThanOrEqualOperator(value)
-    {
+    getLessThanOrEqualOperator(value){
         return '<=';
     }
 
-    getLessThanOperator(value)
-    {
+    getLessThanOperator(value){
         return '<';
     }
 
-    getSQLOperator(operator, value)
-    {
+    getINOperator(value){
+        return 'IN';
+    }
+
+    getSQLOperator(operator, value){
         if(operator == '$eq')
             return this.getEqualOperator(value);
         else
@@ -120,7 +118,10 @@ export class SQLServerCollection
                             if(operator == '$gt')
                                 return this.getGreaterThanOperator(value);
                             else
-                                throw `Operator ${operator} not implemented.`;
+                                if(operator == '$in')
+                                    return this.getINOperator(value);
+                                else
+                                    throw `Operator ${operator} not implemented.`;
     }
 
     getOperator(property)
@@ -143,7 +144,10 @@ export class SQLServerCollection
                             if(property.hasOwnProperty('$lt'))
                                 return '$lt';
                             else
-                                throw `Operator ${operator} not implemented.`;
+                                if(property.hasOwnProperty('$in'))
+                                    return '$in';
+                                else
+                                    throw `Operator ${operator} not implemented.`;
     }
 
     getCondition(item)
@@ -262,7 +266,13 @@ export class SQLServerCollection
                     if(typeof value == 'boolean')
                         return value ? 1 : 0;
                     else
-                        return 'NULL';
+                        if(value == null)
+                            return 'NULL';
+                        else
+                            if(Array.isArray(value))
+                                return `(${value.join(', ')})`;
+                            else
+                                throw Error("SQL value transformation is not implemented.");
     }
 
     getSQLProperties(fields, properties)
