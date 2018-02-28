@@ -3,7 +3,7 @@ import { DatabaseCursor } from './DatabaseCursor';
 export class SQLServerCollection
 {
     constructor( name, database){
-        this.debug = false;
+        this.debug = true;
         this.name = name;
         this.database = database;
         this.schema = database.getSchema(name);
@@ -99,6 +99,10 @@ export class SQLServerCollection
         return 'IN';
     }
 
+    getLikeOperator(value){
+        return 'LIKE';
+    }
+
     getSQLOperator(operator, value){
         if(operator == '$eq')
             return this.getEqualOperator(value);
@@ -121,7 +125,10 @@ export class SQLServerCollection
                                 if(operator == '$in')
                                     return this.getINOperator(value);
                                 else
-                                    throw `Operator ${operator} not implemented.`;
+                                    if(operator == '$regex')
+                                        return this.getLikeOperator(value);
+                                    else
+                                        throw `Operator ${operator} not implemented.`;
     }
 
     getOperator(property)
@@ -147,19 +154,81 @@ export class SQLServerCollection
                                 if(property.hasOwnProperty('$in'))
                                     return '$in';
                                 else
-                                    throw `Operator ${operator} not implemented.`;
+                                    if(property.hasOwnProperty('$regex'))
+                                        return '$regex';
+                                    else
+                                        throw `Operator ${operator} not implemented.`;
+    }
+
+    getSQLValue(value, operator)
+    {
+        if(typeof value == 'string')
+        {
+            if(operator == '$regex')
+            {
+                if(value.substring(0, 1) == '^')
+                {
+                    value = value.substring(1, value.length);
+
+                    return `'${value}%'`;
+                }
+                else
+                    if(value.substring(value.length - 1, value.length) == '$')
+                    {
+                        value = value.substring(0, value.length - 1);
+
+                        return `'%${value}'`;
+                    }
+                    else
+                        return `'%${value}%'`;
+            }
+            else
+                return `'${value}'`;
+        }
+        else
+            if(typeof value == 'number')
+                return value;
+            else
+                if(value instanceof Date)
+                {
+                    value = value.toISOString().slice(0, 19).replace('T', ' ');
+
+                    return `'${value}'`;
+                }
+                else
+                    if(typeof value == 'boolean')
+                        return value ? 1 : 0;
+                    else
+                        if(value == null)
+                            return 'NULL';
+                        else
+                            if(Array.isArray(value))
+                                return `(${value.join(', ')})`;
+                            else
+                                throw Error("SQL value transformation is not implemented.");
     }
 
     getCondition(item)
     {
-        let property = item.value;
-        let operator = this.getOperator(property);
-        let value = property[operator];
+        if(item.key == '$and' || item.key == '$or')
+        {
+            let conditions = item.value;
+            let operator = item.key.substring(1, item.key.length).toUpperCase();
+            let result = conditions.map(c => { return this.getConditions(c)}).join( ` ${operator} `);
 
-        if(value == null)
-            return `${item.key} ${this.getSQLOperator(operator, value)} NULL`;
+            return `(${result})`;
+        }
         else
-            return `${item.key} ${this.getSQLOperator(operator, value)} ${this.getSQLValue(value)}`;
+        {
+            let property = item.value;
+            let operator = this.getOperator(property);
+            let value = property[operator];
+
+            if(value == null)
+                return `${item.key} ${this.getSQLOperator(operator, value)} NULL`;
+            else
+                return `${item.key} ${this.getSQLOperator(operator, value)} ${this.getSQLValue(value, operator)}`;
+        }
     }
 
     getConditions(selector)
@@ -179,9 +248,11 @@ export class SQLServerCollection
         }
 
         conditions = conditions.map(function(item){
+
             if(item.value != null)
             {
-                if(item.value.constructor !== Object)
+                // A condition like this: {$or: [{}, {}...]} has to go into the getCondition method
+                if(item.value.constructor !== Object && item.value.constructor !== Array)
                     return `${item.key} = ${self.getSQLValue(item.value)}`;
                 else
                     return self.getCondition(item); // The value was specified as an object like {$ne: 'xxx'}
@@ -246,33 +317,6 @@ export class SQLServerCollection
         this.debug && console.log(query);
 
         return query;
-    }
-
-    getSQLValue(value)
-    {
-        if(typeof value == 'string')
-            return `'${value}'`;
-        else
-            if(typeof value == 'number')
-                return value;
-            else
-                if(value instanceof Date)
-                {
-                    value = value.toISOString().slice(0, 19).replace('T', ' ');
-
-                    return `'${value}'`;
-                }
-                else
-                    if(typeof value == 'boolean')
-                        return value ? 1 : 0;
-                    else
-                        if(value == null)
-                            return 'NULL';
-                        else
-                            if(Array.isArray(value))
-                                return `(${value.join(', ')})`;
-                            else
-                                throw Error("SQL value transformation is not implemented.");
     }
 
     getSQLProperties(fields, properties)
