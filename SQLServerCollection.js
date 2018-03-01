@@ -203,7 +203,7 @@ export class SQLServerCollection
                             return 'NULL';
                         else
                             if(Array.isArray(value))
-                                return `(${value.join(', ')})`;
+                                return `(${value.map(c => { return `'${c}'`}).join(', ')})`;
                             else
                                 throw Error("SQL value transformation is not implemented.");
     }
