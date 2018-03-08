@@ -314,8 +314,6 @@ export class SQLServerCollection
                 else
                     throw new Error("Unknown selector type.");
 
-        this.debug && console.log(query);
-
         return query;
     }
 
@@ -354,11 +352,6 @@ export class SQLServerCollection
     {
         try {
             let query = this.getQuery(selector, fields, options);
-
-            this.debug && console.log('SQLServerCollection.find');
-            this.debug && console.log(selector);
-            this.debug && console.log(fields);
-            this.debug && console.log(options);
 
             return new DatabaseCursor(this.database, this.name, query);
         } catch (e) {
